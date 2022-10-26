@@ -1,0 +1,28 @@
+const firebase = require("../firebase/admin");
+
+const  authMiddleware = (request, response, next) => {
+
+    const headerToken = request.headers.authorization;
+    
+    if (!headerToken) {
+        return response.status(401).send({ message: "No token provided" });
+    }
+
+    if (headerToken && headerToken.split(" ")[0] !== "Bearer") {
+        return response.status(401).send({ message: "Invalid token" });
+    }
+
+    const token = headerToken.split(" ")[1];
+
+    firebase
+        .auth()
+        .verifyIdToken(token)
+        .then(() => {
+        // Validate user on database
+
+        next()
+        })
+        .catch(() => response.status(403).send({ message: "Could not authorize" }));
+};
+
+module.exports = authMiddleware;
